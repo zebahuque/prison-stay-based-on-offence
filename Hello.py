@@ -9,6 +9,12 @@ def load_data(crime):
     df = pd.read_csv(file_path)
     return df
 
+# Custom function to clean numeric columns with commas
+def clean_numeric_columns(df, columns):
+    for col in columns:
+        df[col] = pd.to_numeric(df[col].str.replace(',', ''), errors='coerce')
+    return df
+
 # Streamlit app
 st.title("Prison Sentence Heatmap")
 
@@ -18,6 +24,10 @@ selected_crime = st.sidebar.selectbox("Select Crime Category", crime_options)
 
 # Load data based on selected crime
 df = load_data(selected_crime)
+
+# Clean numeric columns with commas
+numeric_columns = ["Number Released", "Avg sentence in years"]
+df = clean_numeric_columns(df, numeric_columns)
 
 # Pivot the data for heatmap
 heatmap_data = df.pivot_table(index="Year of Release", columns="Avg sentence in years", values="Number Released", aggfunc="sum")
@@ -30,9 +40,12 @@ plt.xlabel("Average Sentence Duration (years)")
 plt.ylabel("Year of Release")
 st.pyplot()
 
+
 # Display the raw data
 st.subheader("Raw Data")
 st.dataframe(df)
+
+
 
 
 
