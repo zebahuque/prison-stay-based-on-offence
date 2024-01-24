@@ -20,7 +20,7 @@ selected_crime = st.sidebar.selectbox("Select Crime Category", crime_options)
 df = load_data(selected_crime)
 
 # Pivot the data for heatmap
-heatmap_data = df.pivot("Year of Release", "Avg sentence in years", "Number Released")
+heatmap_data = df.pivot_table(index="Year of Release", columns="Avg sentence in years", values="Number Released", aggfunc="sum")
 
 # Create heatmap
 plt.figure(figsize=(12, 8))
