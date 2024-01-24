@@ -1,41 +1,42 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Function to load CSV data based on selected crime
 def load_data(crime):
     file_path = f"{crime}.csv"
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, thousands=',')  # Specify thousands=',' to handle comma in numbers
     return df
 
 # Streamlit app
-st.title("Prison Sentence Visualization Dashboard")
+st.title("Prison Sentence Line Chart")
 
-# Sidebar with crime selection
+# Dropdown selector for crime type
 crime_options = ["0000 All Crimes", "0001 Violent", "0002 Sex Offense", "0003 Property"]
-selected_crime = st.sidebar.selectbox("Select Crime Category", crime_options)
+selected_crime = st.selectbox("Select Crime Category", crime_options)
 
 # Load data based on selected crime
 df = load_data(selected_crime)
 
-# Line chart for average sentence over the years
-st.subheader(f"Average Sentence Over the Years - {selected_crime}")
-fig_avg_sentence = plt.figure()
+# Clean numeric columns with commas
+numeric_columns = ["Number Released", "Avg sentence in years"]
+df[numeric_columns] = df[numeric_columns].apply(lambda x: x.str.replace(',', '').astype(float))
+
+# Line Chart
+plt.figure(figsize=(12, 8))
+st.subheader(f"Line Chart - Average Sentence Duration for {selected_crime}")
 sns.lineplot(x="Year of Release", y="Avg sentence in years", data=df)
-st.pyplot(fig_avg_sentence)
-
-# Bar chart for percent released by parole
-st.subheader(f"Percent Released by Parole Over the Years - {selected_crime}")
-fig_parole = plt.figure()
-sns.barplot(x="Year of Release", y="Percent released by Parole", data=df)
-st.pyplot(fig_parole)
-
-# You can add more visualizations based on your specific needs
+plt.xlabel("Year of Release")
+plt.ylabel("Average Sentence Duration (years)")
+plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels for better visibility
+plt.title("Average Sentence Duration Over Years")
+st.pyplot()
 
 # Display the raw data
 st.subheader("Raw Data")
 st.dataframe(df)
+
 
 
 # # Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
