@@ -1,15 +1,16 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Function to load CSV data based on selected crime
 def load_data(crime):
     file_path = f"{crime}.csv"
-    df = pd.read_csv(file_path, thousands=',')  # Specify thousands=',' to handle comma in numbers
+    df = pd.read_csv(file_path)
     return df
 
 # Streamlit app
-st.title("Prison Sentence Bubble Chart")
+st.title("Prison Sentence Visualization Dashboard")
 
 # Sidebar with crime selection
 crime_options = ["0000 All Crimes", "0001 Violent", "0002 Sex Offense", "0003 Property"]
@@ -18,31 +19,23 @@ selected_crime = st.sidebar.selectbox("Select Crime Category", crime_options)
 # Load data based on selected crime
 df = load_data(selected_crime)
 
-# Clean numeric columns with commas
-numeric_columns = ["Number Released", "Avg sentence in years"]
-df[numeric_columns] = df[numeric_columns].apply(lambda x: x.str.replace(',', '').astype(float))
+# Line chart for average sentence over the years
+st.subheader(f"Average Sentence Over the Years - {selected_crime}")
+fig_avg_sentence = plt.figure()
+sns.lineplot(x="Year of Release", y="Avg sentence in years", data=df)
+st.pyplot(fig_avg_sentence)
 
-# Bubble Chart
-fig = px.scatter(df, x="Avg sentence in years", y="Year of Release", size="Number Released", color="Number Released",
-                 hover_name="Year of Release", labels={"Avg sentence in years": "Average Sentence Duration (years)",
-                                                      "Number Released": "Number Released"},
-                 title=f"Bubble Chart - {selected_crime}")
+# Bar chart for percent released by parole
+st.subheader(f"Percent Released by Parole Over the Years - {selected_crime}")
+fig_parole = plt.figure()
+sns.barplot(x="Year of Release", y="Percent released by Parole", data=df)
+st.pyplot(fig_parole)
 
-# Update axis labels and figure size
-fig.update_layout(xaxis_title="Average Sentence Duration (years)",
-                  yaxis_title="Year of Release",
-                  height=600, width=800)
-
-# Display the chart
-st.plotly_chart(fig)
+# You can add more visualizations based on your specific needs
 
 # Display the raw data
 st.subheader("Raw Data")
 st.dataframe(df)
-
-
-
-
 
 
 # # Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
