@@ -1,22 +1,15 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Function to load CSV data based on selected crime
 def load_data(crime):
     file_path = f"{crime}.csv"
-    df = pd.read_csv(file_path)
-    return df
-
-# Custom function to clean numeric columns with commas
-def clean_numeric_columns(df, columns):
-    for col in columns:
-        df[col] = pd.to_numeric(df[col].str.replace(',', ''), errors='coerce')
+    df = pd.read_csv(file_path, thousands=',')  # Specify thousands=',' to handle comma in numbers
     return df
 
 # Streamlit app
-st.title("Prison Sentence Heatmap")
+st.title("Prison Sentence Bubble Chart")
 
 # Sidebar with crime selection
 crime_options = ["0000 All Crimes", "0001 Violent", "0002 Sex Offense", "0003 Property"]
@@ -27,23 +20,26 @@ df = load_data(selected_crime)
 
 # Clean numeric columns with commas
 numeric_columns = ["Number Released", "Avg sentence in years"]
-df = clean_numeric_columns(df, numeric_columns)
+df[numeric_columns] = df[numeric_columns].apply(lambda x: x.str.replace(',', '').astype(float))
 
-# Pivot the data for heatmap
-heatmap_data = df.pivot_table(index="Year of Release", columns="Avg sentence in years", values="Number Released", aggfunc="sum")
+# Bubble Chart
+fig = px.scatter(df, x="Avg sentence in years", y="Year of Release", size="Number Released", color="Number Released",
+                 hover_name="Year of Release", labels={"Avg sentence in years": "Average Sentence Duration (years)",
+                                                      "Number Released": "Number Released"},
+                 title=f"Bubble Chart - {selected_crime}")
 
-# Create heatmap
-plt.figure(figsize=(12, 8))
-st.subheader(f"Heatmap - Average Sentence Duration for {selected_crime}")
-sns.heatmap(heatmap_data, cmap="YlGnBu", annot=True, fmt=".0f", cbar_kws={'label': 'Number Released'})
-plt.xlabel("Average Sentence Duration (years)")
-plt.ylabel("Year of Release")
-st.pyplot()
+# Update axis labels and figure size
+fig.update_layout(xaxis_title="Average Sentence Duration (years)",
+                  yaxis_title="Year of Release",
+                  height=600, width=800)
 
+# Display the chart
+st.plotly_chart(fig)
 
 # Display the raw data
 st.subheader("Raw Data")
 st.dataframe(df)
+
 
 
 
