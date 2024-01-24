@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Function to load CSV data based on selected crime
 def load_data(crime):
@@ -10,7 +10,7 @@ def load_data(crime):
     return df
 
 # Streamlit app
-st.title("Prison Sentence Visualization Dashboard")
+st.title("Prison Sentence Heatmap")
 
 # Sidebar with crime selection
 crime_options = ["0000 All Crimes", "0001 Violent", "0002 Sex Offense", "0003 Property"]
@@ -19,23 +19,21 @@ selected_crime = st.sidebar.selectbox("Select Crime Category", crime_options)
 # Load data based on selected crime
 df = load_data(selected_crime)
 
-# Line chart for average sentence over the years
-st.subheader(f"Average Sentence Over the Years - {selected_crime}")
-fig_avg_sentence = plt.figure()
-sns.lineplot(x="Year of Release", y="Avg sentence in years", data=df)
-st.pyplot(fig_avg_sentence)
+# Pivot the data for heatmap
+heatmap_data = df.pivot("Year of Release", "Avg sentence in years", "Number Released")
 
-# Bar chart for percent released by parole
-st.subheader(f"Percent Released by Parole Over the Years - {selected_crime}")
-fig_parole = plt.figure()
-sns.barplot(x="Year of Release", y="Percent released by Parole", data=df)
-st.pyplot(fig_parole)
-
-# You can add more visualizations based on your specific needs
+# Create heatmap
+plt.figure(figsize=(12, 8))
+st.subheader(f"Heatmap - Average Sentence Duration for {selected_crime}")
+sns.heatmap(heatmap_data, cmap="YlGnBu", annot=True, fmt=".0f", cbar_kws={'label': 'Number Released'})
+plt.xlabel("Average Sentence Duration (years)")
+plt.ylabel("Year of Release")
+st.pyplot()
 
 # Display the raw data
 st.subheader("Raw Data")
 st.dataframe(df)
+
 
 
 # # Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
