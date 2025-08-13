@@ -21,7 +21,9 @@ df = load_data(selected_crime)
 
 # Clean numeric columns with commas
 numeric_columns = ["Number Released", "Avg sentence in years"]
-df[numeric_columns] = df[numeric_columns].apply(lambda x: x.str.replace(',', '').astype(float))
+for col in numeric_columns:
+    if df[col].dtype == 'object':
+        df[col] = df[col].str.replace(',', '').astype(float)
 
 # Line Chart
 plt.figure(figsize=(12, 8))
