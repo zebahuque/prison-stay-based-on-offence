@@ -16,28 +16,55 @@ st.title("Prison Sentence Line Chart")
 crime_options = ["0000 All Crimes", "0001 Violent", "0002 Sex Offense", "0003 Property"]
 selected_crime = st.selectbox("Select Crime Category", crime_options)
 
-# Load data based on selected crime
-df = load_data(selected_crime)
+# Load data based on selection
+if selected_crime == "0000 All Crimes":
+    # Load all datasets for comparison
+    crime_files = {
+        "All Crimes": "0000 All Crimes",
+        "Violent": "0001 Violent",
+        "Sex Offense": "0002 Sex Offense",
+        "Property": "0003 Property"
+    }
+    dfs = {name: load_data(fname) for name, fname in crime_files.items()}
+    chart_title = "Line Chart - Average Sentence Duration for All Crime Categories"
+    raw_data_title = "Raw Data for All Crimes"
+    main_df_key = "All Crimes"
+else:
+    # Load just the selected crime data
+    dfs = {selected_crime: load_data(selected_crime)}
+    chart_title = f"Line Chart - Average Sentence Duration for {selected_crime}"
+    raw_data_title = f"Raw Data for {selected_crime}"
+    main_df_key = selected_crime
 
-# Clean numeric columns with commas
+# Clean all loaded dataframes
 numeric_columns = ["Number Released", "Avg sentence in years"]
-for col in numeric_columns:
-    if df[col].dtype == 'object':
-        df[col] = df[col].str.replace(',', '').astype(float)
+for df in dfs.values():
+    for col in numeric_columns:
+        if df[col].dtype == 'object':
+            df[col] = df[col].str.replace(',', '').astype(float)
 
 # Line Chart
-plt.figure(figsize=(12, 8))
-st.subheader(f"Line Chart - Average Sentence Duration for {selected_crime}")
-sns.lineplot(x="Year of Release", y="Avg sentence in years", data=df)
-plt.xlabel("Year of Release")
-plt.ylabel("Average Sentence Duration (years)")
-plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels for better visibility
-plt.title("Average Sentence Duration Over Years")
-st.pyplot()
+st.subheader(chart_title)
+fig, ax = plt.subplots(figsize=(12, 8))
+
+# Plot data
+if len(dfs) > 1:
+    for name, df in dfs.items():
+        sns.lineplot(x="Year of Release", y="Avg sentence in years", data=df, ax=ax, label=name)
+    ax.legend()
+else:
+    df_single = list(dfs.values())[0]
+    sns.lineplot(x="Year of Release", y="Avg sentence in years", data=df_single, ax=ax)
+
+ax.set_xlabel("Year of Release")
+ax.set_ylabel("Average Sentence Duration (years)")
+ax.set_title("Average Sentence Duration Over Years")
+plt.setp(ax.get_xticklabels(), rotation=45, ha="right")  # Rotate x-axis labels for better visibility
+st.pyplot(fig)
 
 # Display the raw data
-st.subheader("Raw Data")
-st.dataframe(df)
+st.subheader(raw_data_title)
+st.dataframe(dfs[main_df_key])
 
 
 
